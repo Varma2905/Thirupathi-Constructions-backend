@@ -109,8 +109,15 @@ const seedAdmin = async () => {
 
 const startServer = async () => {
     try {
+        console.log(`[Startup] Attempting to connect to database at ${process.env.DB_HOST || 'localhost'}...`);
+        
+        // Check for common Render mistake: using localhost in production
+        if (process.env.RENDER && (!process.env.DB_HOST || process.env.DB_HOST === 'localhost')) {
+            console.warn('⚠️  WARNING: Using "localhost" as DB_HOST on Render. This will likely fail because Render does not run MySQL locally.');
+        }
+
         await pool.query('SELECT 1');
-        console.log('Database connected successfully');
+        console.log('✅ Database connected successfully');
 
         if (process.env.AUTO_SEED_ADMIN === 'true') {
             await seedAdmin();
@@ -121,7 +128,14 @@ const startServer = async () => {
             console.log(`http://localhost:${PORT}`);
         });
     } catch (err) {
-        console.error('Failed to start server:', err.message);
+        console.error('❌ Failed to start server!');
+        console.error('Error Message:', err.message);
+        console.error('Error Code:', err.code || 'N/A');
+        
+        if (err.code === 'ECONNREFUSED') {
+            console.error('👉 Suggestion: Your database connection was refused. If you are on Render, ensure you are NOT using "localhost" and that your remote MySQL server is accessible.');
+        }
+        
         process.exit(1);
     }
 };
