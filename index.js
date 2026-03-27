@@ -128,15 +128,17 @@ const startServer = async () => {
             console.log(`http://localhost:${PORT}`);
         });
     } catch (err) {
-        console.error('❌ Failed to start server!');
-        console.error('Error Message:', err.message);
-        console.error('Error Code:', err.code || 'N/A');
+        console.error('⚠️  WARNING: Could not connect to database on startup.');
+        console.error('Error Details:', err.message);
         
-        if (err.code === 'ECONNREFUSED') {
-            console.error('👉 Suggestion: Your database connection was refused. If you are on Render, ensure you are NOT using "localhost" and that your remote MySQL server is accessible.');
-        }
-        
-        process.exit(1);
+        console.log('---------------------------------------------------------');
+        console.log('🚀 SERVER STARTING ANYWAY (Graceful Mode)');
+        console.log('Note: API calls requiring a database will fail until DB_HOST is configured.');
+        console.log('---------------------------------------------------------');
+
+        server.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT} (Database Offline)`);
+        });
     }
 };
 
